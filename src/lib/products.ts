@@ -61,5 +61,8 @@ export function getCategoryLabel(slug: Category): string {
 }
 
 export function formatPrice(price: number): string {
-  return `${price.toFixed(2)} EGP`;
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(price);
 }

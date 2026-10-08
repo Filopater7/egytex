@@ -26,7 +26,7 @@ const EMPTY: Omit<Product, "id" | "createdAt"> = {
 };
 
 function formatEGP(price: number): string {
-  return `${price.toFixed(2)} EGP`;
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(price);
 }
 
 function getSupabase() {
@@ -216,23 +216,18 @@ export default function ProductForm({ mode, initialData }: Props) {
           </select>
         </Field>
 
-        <Field label={`Price (EGP)${pricePreview ? ` — ${pricePreview}` : ""}`} required>
-          <div className="relative">
-            <input
-              name="price"
-              type="number"
-              min="0.01"
-              step="0.01"
-              value={form.price || ""}
-              onChange={handleChange}
-              placeholder="0.00"
-              className={INPUT + " pr-14"}
-              required
-            />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-medium pointer-events-none">
-              EGP
-            </span>
-          </div>
+        <Field label={`Price (USD)${pricePreview ? ` — ${pricePreview}` : ""}`} required>
+          <input
+            name="price"
+            type="number"
+            min="0.01"
+            step="0.01"
+            value={form.price || ""}
+            onChange={handleChange}
+            placeholder="0.00"
+            className={INPUT}
+            required
+          />
         </Field>
 
         <Field label="Stock" required>
