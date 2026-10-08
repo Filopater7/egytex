@@ -29,7 +29,6 @@ export default function AdminLoginForm() {
         return;
       }
 
-      // Redirect to where they came from or admin dashboard
       const from = searchParams.get("from") ?? "/admin";
       router.push(from);
       router.refresh();

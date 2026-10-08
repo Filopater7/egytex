@@ -4,17 +4,13 @@ import type { NextRequest } from "next/server";
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Only protect /admin routes (not /admin/login or /api/admin/*)
-  if (
-    pathname.startsWith("/admin") &&
-    !pathname.startsWith("/admin/login")
-  ) {
+  // Protect all /admin routes — redirect to /admin-login if no valid session
+  if (pathname.startsWith("/admin")) {
     const session = request.cookies.get("admin_session")?.value;
     const secret = process.env.ADMIN_SECRET;
 
-    // If no session or session doesn't match secret → redirect to login
     if (!session || !secret || session !== secret) {
-      const loginUrl = new URL("/admin/login", request.url);
+      const loginUrl = new URL("/admin-login", request.url);
       loginUrl.searchParams.set("from", pathname);
       return NextResponse.redirect(loginUrl);
     }
