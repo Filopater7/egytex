@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { dbGetProductById } from "@/lib/db";
+import { dbGetProductByIdAsync } from "@/lib/db";
 import { formatPrice } from "@/lib/products";
 import ProductForm from "../../_components/ProductForm";
 import DeleteButton from "../../_components/DeleteButton";
@@ -12,7 +12,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const product = dbGetProductById(id);
+  const product = await dbGetProductByIdAsync(id);
   return { title: product ? `Edit: ${product.name}` : "Product Not Found" };
 }
 
@@ -25,7 +25,7 @@ export default async function EditProductPage({
 }) {
   const { id } = await params;
   const { created } = await searchParams;
-  const product = dbGetProductById(id);
+  const product = await dbGetProductByIdAsync(id);
   if (!product) notFound();
 
   return (

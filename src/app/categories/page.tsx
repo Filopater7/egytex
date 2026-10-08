@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CATEGORIES, dbGetProductsByCategory } from "@/lib/db";
+import { CATEGORIES, dbGetProductsByCategoryAsync } from "@/lib/db";
 
 export const metadata: Metadata = {
   title: "Our Menu — EgyTex",
@@ -8,7 +8,15 @@ export const metadata: Metadata = {
     "Browse our Egyptian food menu by category — sweet food and savory food, made fresh daily.",
 };
 
-export default function CategoriesPage() {
+export default async function CategoriesPage() {
+  const counts = await Promise.all(
+    CATEGORIES.map(async (cat) => {
+      const products = await dbGetProductsByCategoryAsync(cat.slug);
+      return { slug: cat.slug, count: products.length };
+    })
+  );
+  const countMap = Object.fromEntries(counts.map((c) => [c.slug, c.count]));
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="mb-8">
@@ -18,7 +26,7 @@ export default function CategoriesPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {CATEGORIES.map((cat) => {
-          const count = dbGetProductsByCategory(cat.slug).length;
+          const count = countMap[cat.slug] ?? 0;
           return (
             <Link
               key={cat.slug}

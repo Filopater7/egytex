@@ -1,10 +1,10 @@
-import { dbGetAllProducts, dbCreateProduct } from "@/lib/db";
+import { dbGetAllProductsAsync, dbCreateProductAsync } from "@/lib/db";
 import type { Category } from "@/lib/products";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const products = dbGetAllProducts();
+  const products = await dbGetAllProductsAsync();
   return Response.json(products);
 }
 
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
       return Response.json({ error: "Invalid category." }, { status: 400 });
     }
 
-    const product = dbCreateProduct({
+    const product = await dbCreateProductAsync({
       name: String(body.name).trim(),
       description: String(body.description).trim(),
       fullDescription: String(body.fullDescription).trim(),

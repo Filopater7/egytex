@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { dbGetAllProducts } from "@/lib/db";
+import { dbGetAllProductsAsync } from "@/lib/db";
 import ProductsClient from "./_components/ProductsClient";
 
 export const metadata: Metadata = {
@@ -14,7 +14,7 @@ export default async function ProductsPage({
   searchParams: Promise<{ filter?: string }>;
 }) {
   const { filter } = await searchParams;
-  const products = dbGetAllProducts();
+  const products = await dbGetAllProductsAsync();
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">

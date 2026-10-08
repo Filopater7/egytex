@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import ProductCard from "@/components/ProductCard";
-import { dbGetNewProducts, dbGetFeaturedProducts, CATEGORIES } from "@/lib/db";
+import { dbGetNewProductsAsync, dbGetFeaturedProductsAsync, CATEGORIES } from "@/lib/db";
 
 export const metadata: Metadata = {
   title: "EgyTex — أجمل الأكلات المصرية | Food & Desserts",
@@ -9,9 +9,9 @@ export const metadata: Metadata = {
     "Authentic Egyptian food and desserts. Fresh kunafa, cakes, shawarma, grilled meals and more. Order online.",
 };
 
-export default function HomePage() {
-  const newProducts = dbGetNewProducts(6);
-  const featuredProducts = dbGetFeaturedProducts(4);
+export default async function HomePage() {
+  const newProducts = await dbGetNewProductsAsync(6);
+  const featuredProducts = await dbGetFeaturedProductsAsync(4);
 
   return (
     <>

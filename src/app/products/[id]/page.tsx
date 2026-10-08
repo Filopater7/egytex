@@ -3,8 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  dbGetProductById,
-  dbGetRelatedProducts,
+  dbGetProductByIdAsync,
+  dbGetRelatedProductsAsync,
   CATEGORIES,
 } from "@/lib/db";
 import { getCategoryLabel } from "@/lib/products";
@@ -17,7 +17,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const product = dbGetProductById(id);
+  const product = await dbGetProductByIdAsync(id);
   if (!product) return { title: "Product Not Found" };
 
   return {
@@ -37,10 +37,10 @@ export default async function ProductDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const product = dbGetProductById(id);
+  const product = await dbGetProductByIdAsync(id);
   if (!product) notFound();
 
-  const related = dbGetRelatedProducts(product, 4);
+  const related = await dbGetRelatedProductsAsync(product, 4);
   const categoryMeta = CATEGORIES.find((c) => c.slug === product.category);
 
   return (

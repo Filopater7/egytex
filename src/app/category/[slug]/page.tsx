@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  dbGetProductsByCategory,
+  dbGetProductsByCategoryAsync,
   CATEGORIES,
 } from "@/lib/db";
 import { getCategoryLabel } from "@/lib/products";
@@ -33,7 +33,7 @@ export default async function CategoryPage({
   const cat = CATEGORIES.find((c) => c.slug === slug);
   if (!cat) notFound();
 
-  const products = dbGetProductsByCategory(slug as Category);
+  const products = await dbGetProductsByCategoryAsync(slug as Category);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">

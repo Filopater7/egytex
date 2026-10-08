@@ -1,4 +1,4 @@
-import { dbGetProductById, dbUpdateProduct, dbDeleteProduct } from "@/lib/db";
+import { dbGetProductByIdAsync, dbUpdateProductAsync, dbDeleteProductAsync } from "@/lib/db";
 import type { Category } from "@/lib/products";
 
 export const dynamic = "force-dynamic";
@@ -8,7 +8,7 @@ export async function GET(
   ctx: RouteContext<"/api/products/[id]">
 ) {
   const { id } = await ctx.params;
-  const product = dbGetProductById(id);
+  const product = await dbGetProductByIdAsync(id);
   if (!product) return Response.json({ error: "Not found." }, { status: 404 });
   return Response.json(product);
 }
@@ -18,7 +18,7 @@ export async function PUT(
   ctx: RouteContext<"/api/products/[id]">
 ) {
   const { id } = await ctx.params;
-  const existing = dbGetProductById(id);
+  const existing = await dbGetProductByIdAsync(id);
   if (!existing) return Response.json({ error: "Not found." }, { status: 404 });
 
   try {
@@ -29,7 +29,7 @@ export async function PUT(
       return Response.json({ error: "Invalid category." }, { status: 400 });
     }
 
-    const updated = dbUpdateProduct(id, {
+    const updated = await dbUpdateProductAsync(id, {
       ...(body.name !== undefined && { name: String(body.name).trim() }),
       ...(body.description !== undefined && { description: String(body.description).trim() }),
       ...(body.fullDescription !== undefined && { fullDescription: String(body.fullDescription).trim() }),
@@ -52,7 +52,7 @@ export async function DELETE(
   ctx: RouteContext<"/api/products/[id]">
 ) {
   const { id } = await ctx.params;
-  const ok = dbDeleteProduct(id);
+  const ok = await dbDeleteProductAsync(id);
   if (!ok) return Response.json({ error: "Not found." }, { status: 404 });
   return Response.json({ success: true });
 }

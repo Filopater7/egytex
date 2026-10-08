@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { dbGetAllProducts } from "@/lib/db";
+import { dbGetAllProductsAsync } from "@/lib/db";
 import { CATEGORIES, formatPrice } from "@/lib/products";
 
 export const metadata: Metadata = { title: "Dashboard — EgyTex Admin" };
 
-export default function AdminDashboard() {
-  const products = dbGetAllProducts();
+export default async function AdminDashboard() {
+  const products = await dbGetAllProductsAsync();
 
   const totalProducts = products.length;
   const totalValue = products.reduce((s, p) => s + p.price * p.stock, 0);
