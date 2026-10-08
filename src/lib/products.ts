@@ -9,14 +9,7 @@
  * in fs/path (which are server-only).
  */
 
-export type Category =
-  | "desserts"
-  | "cakes"
-  | "pastries"
-  | "savory-food"
-  | "sandwiches"
-  | "meals"
-  | "other";
+export type Category = "sweet-food" | "savory-food";
 
 export interface Product {
   id: string;
@@ -48,46 +41,16 @@ export const CATEGORIES: {
   icon: string;
 }[] = [
   {
-    slug: "desserts",
-    label: "Desserts",
-    description: "Sweet desserts & treats",
+    slug: "sweet-food",
+    label: "Sweet Food",
+    description: "Desserts, cakes, pastries & sweets",
     icon: "🍮",
-  },
-  {
-    slug: "cakes",
-    label: "Cakes",
-    description: "Fresh baked cakes for every occasion",
-    icon: "🎂",
-  },
-  {
-    slug: "pastries",
-    label: "Pastries",
-    description: "Flaky pastries & baked goods",
-    icon: "🥐",
   },
   {
     slug: "savory-food",
     label: "Savory Food",
-    description: "Delicious savory dishes & snacks",
+    description: "Meals, sandwiches & savory dishes",
     icon: "🍽️",
-  },
-  {
-    slug: "sandwiches",
-    label: "Sandwiches",
-    description: "Fresh made-to-order sandwiches",
-    icon: "🥪",
-  },
-  {
-    slug: "meals",
-    label: "Meals",
-    description: "Full meals & hearty plates",
-    icon: "🍛",
-  },
-  {
-    slug: "other",
-    label: "Other Products",
-    description: "More delicious items",
-    icon: "✨",
   },
 ];
 

@@ -20,10 +20,7 @@ export async function POST(request: Request) {
       }
     }
 
-    const validCategories: Category[] = [
-      "desserts", "cakes", "pastries", "savory-food",
-      "sandwiches", "meals", "other",
-    ];
+    const validCategories: Category[] = ["sweet-food", "savory-food"];
     if (!validCategories.includes(body.category)) {
       return Response.json({ error: "Invalid category." }, { status: 400 });
     }

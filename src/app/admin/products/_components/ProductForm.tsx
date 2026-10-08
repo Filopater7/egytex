@@ -18,7 +18,7 @@ const EMPTY: Omit<Product, "id" | "createdAt"> = {
   fullDescription: "",
   price: 0,
   image: "",
-  category: "desserts",
+  category: "sweet-food",
   stock: 0,
   isNew: false,
   isFeatured: false,
@@ -112,7 +112,7 @@ export default function ProductForm({ mode, initialData }: Props) {
     const label = form.name || "Product";
     setForm((prev) => ({
       ...prev,
-      image: `https://placehold.co/600x450/0d9488/ffffff/png?text=${encodeURIComponent(label)}`,
+      image: `https://placehold.co/600x450/C8960C/FFFFFF/png?text=${encodeURIComponent(label)}`,
     }));
   }
 
@@ -136,7 +136,7 @@ export default function ProductForm({ mode, initialData }: Props) {
           type="text"
           value={form.name}
           onChange={handleChange}
-          placeholder="e.g. Premium White Bath Towel"
+          placeholder="e.g. Kunafa bil Qeshta"
           className={INPUT}
           required
         />
@@ -159,7 +159,7 @@ export default function ProductForm({ mode, initialData }: Props) {
           </select>
         </Field>
 
-        <Field label={`Price (USD)${pricePreview ? ` — ${pricePreview}` : ""}`} required>
+        <Field label={`Price (EGP)${pricePreview ? ` — ${pricePreview}` : ""}`} required>
           <input
             name="price"
             type="number"
@@ -212,7 +212,7 @@ export default function ProductForm({ mode, initialData }: Props) {
           value={form.fullDescription}
           onChange={handleChange}
           rows={5}
-          placeholder="Detailed product description with features, dimensions, materials…"
+          placeholder="Detailed product description with ingredients, serving size, preparation…"
           className={INPUT + " resize-none"}
           required
         />
@@ -243,7 +243,7 @@ export default function ProductForm({ mode, initialData }: Props) {
           </button>
         </div>
         {form.image && (
-          <div className="mt-3 w-32 h-24 rounded-xl overflow-hidden border border-gray-100 bg-gray-50">
+          <div className="mt-3 w-32 h-24 rounded-xl overflow-hidden border border-amber-100 bg-amber-50">
             {/* Plain <img> — avoids next/image hostname restrictions in the admin preview */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -266,10 +266,10 @@ export default function ProductForm({ mode, initialData }: Props) {
             type="checkbox"
             checked={form.isNew}
             onChange={handleChange}
-            className="w-4 h-4 accent-teal-600"
+            className="w-4 h-4 accent-amber-600"
           />
           <span className="text-sm font-medium text-gray-700">
-            Mark as <span className="text-teal-600">New</span>
+            Mark as <span className="text-amber-600">New</span>
           </span>
           <span className="text-xs text-gray-400">(appears in New Products section)</span>
         </label>
@@ -293,7 +293,7 @@ export default function ProductForm({ mode, initialData }: Props) {
         <button
           type="submit"
           disabled={saving}
-          className="bg-teal-600 hover:bg-teal-700 disabled:opacity-60 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors text-sm"
+          className="bg-amber-600 hover:bg-amber-700 disabled:opacity-60 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors text-sm"
         >
           {saving
             ? mode === "new" ? "Creating…" : "Saving…"
@@ -310,7 +310,7 @@ export default function ProductForm({ mode, initialData }: Props) {
           <a
             href={`/products/${initialData.id}`}
             target="_blank"
-            className="ml-auto text-xs text-teal-600 hover:underline"
+            className="ml-auto text-xs text-amber-600 hover:underline"
           >
             View on store ↗
           </a>
@@ -345,4 +345,4 @@ function Field({
 }
 
 const INPUT =
-  "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent bg-white";
+  "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent bg-white";

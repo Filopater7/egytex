@@ -24,10 +24,7 @@ export async function PUT(
   try {
     const body = await request.json();
 
-    const validCategories: Category[] = [
-      "desserts", "cakes", "pastries", "savory-food",
-      "sandwiches", "meals", "other",
-    ];
+    const validCategories: Category[] = ["sweet-food", "savory-food"];
     if (body.category && !validCategories.includes(body.category)) {
       return Response.json({ error: "Invalid category." }, { status: 400 });
     }
