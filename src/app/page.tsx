@@ -28,7 +28,7 @@ export default async function HomePage() {
             </span>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight">
               Everything Delicious,<br />
-              <span className="text-amber-400">Made Fresh</span>,<br />
+              <span className="text-amber-400">Made With Love</span>,<br />
               Every Single Day.
             </h1>
             <p className="mt-6 text-lg sm:text-xl text-amber-100 leading-relaxed max-w-xl">
