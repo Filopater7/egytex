@@ -32,17 +32,17 @@ export default function ContactPage() {
             {
               icon: "📞",
               title: "Phone",
-              lines: ["+20 100 000 0000", "Sat–Thu, 10 am–10 pm"],
+              lines: ["(562) 261-3846"],
             },
             {
               icon: "📍",
               title: "Address",
-              lines: ["Cairo, Egypt"],
+              lines: ["Joe's International Market", "153 S Central Expy", "McKinney, TX 75070"],
             },
             {
               icon: "🕑",
               title: "Business Hours",
-              lines: ["Saturday–Thursday: 10 am–10 pm", "Friday: 12 pm–10 pm"],
+              lines: ["Open 24 hours"],
             },
           ].map(({ icon, title, lines }) => (
             <div key={title} className="bg-white rounded-2xl border border-amber-100 shadow-sm p-5">
