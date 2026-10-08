@@ -42,7 +42,7 @@ export const CATEGORIES: {
 }[] = [
   {
     slug: "sweet-food",
-    label: "Sweet Food",
+    label: "Desserts",
     description: "Desserts, cakes, pastries & sweets",
     icon: "🍮",
   },
