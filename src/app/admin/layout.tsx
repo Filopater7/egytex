@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import AdminNav from "./_components/AdminNav";
+import AdminLogout from "./_components/AdminLogout";
 
 export const metadata: Metadata = {
   title: {
@@ -31,13 +32,16 @@ export default function AdminLayout({ children }: LayoutProps<"/admin">) {
           </span>
           <span className="text-sm text-amber-200 hidden sm:inline">Admin Panel</span>
         </div>
-        <Link
-          href="/"
-          target="_blank"
-          className="text-xs text-amber-400 hover:text-white transition-colors flex items-center gap-1"
-        >
-          View Store ↗
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/"
+            target="_blank"
+            className="text-xs text-amber-400 hover:text-white transition-colors flex items-center gap-1"
+          >
+            View Store ↗
+          </Link>
+          <AdminLogout />
+        </div>
       </header>
 
       <div className="flex flex-1 overflow-hidden">

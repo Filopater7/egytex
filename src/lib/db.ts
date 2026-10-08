@@ -14,12 +14,24 @@ import { CATEGORIES } from "./products";
 export type { Product, Category };
 export { CATEGORIES };
 
-// ─── Supabase client (server-side) ────────────────────────────────────────
+// ─── Supabase clients ─────────────────────────────────────────────────────
 
-function getClient() {
+// Public client — reads only (anon key, safe to expose)
+function getPublicClient() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+  );
+}
+
+// Admin client — writes only (service role key, server-side only, never reaches browser)
+function getAdminClient() {
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceKey) throw new Error("SUPABASE_SERVICE_ROLE_KEY not set.");
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    serviceKey,
+    { auth: { persistSession: false } }
   );
 }
 
@@ -96,7 +108,7 @@ export function dbDeleteProduct(id: string): boolean {
 // ─── Async API (used by Server Components and Route Handlers) ─────────────
 
 export async function dbGetAllProductsAsync(): Promise<Product[]> {
-  const supabase = getClient();
+  const supabase = getPublicClient();
   const { data, error } = await supabase
     .from("products")
     .select("*")
@@ -106,7 +118,7 @@ export async function dbGetAllProductsAsync(): Promise<Product[]> {
 }
 
 export async function dbGetProductByIdAsync(id: string): Promise<Product | undefined> {
-  const supabase = getClient();
+  const supabase = getPublicClient();
   const { data, error } = await supabase
     .from("products")
     .select("*")
@@ -117,7 +129,7 @@ export async function dbGetProductByIdAsync(id: string): Promise<Product | undef
 }
 
 export async function dbGetNewProductsAsync(limit = 6): Promise<Product[]> {
-  const supabase = getClient();
+  const supabase = getPublicClient();
   const { data, error } = await supabase
     .from("products")
     .select("*")
@@ -129,7 +141,7 @@ export async function dbGetNewProductsAsync(limit = 6): Promise<Product[]> {
 }
 
 export async function dbGetFeaturedProductsAsync(limit = 4): Promise<Product[]> {
-  const supabase = getClient();
+  const supabase = getPublicClient();
   const { data, error } = await supabase
     .from("products")
     .select("*")
@@ -141,7 +153,7 @@ export async function dbGetFeaturedProductsAsync(limit = 4): Promise<Product[]> 
 }
 
 export async function dbGetProductsByCategoryAsync(category: Category): Promise<Product[]> {
-  const supabase = getClient();
+  const supabase = getPublicClient();
   const { data, error } = await supabase
     .from("products")
     .select("*")
@@ -152,7 +164,7 @@ export async function dbGetProductsByCategoryAsync(category: Category): Promise<
 }
 
 export async function dbGetRelatedProductsAsync(product: Product, limit = 4): Promise<Product[]> {
-  const supabase = getClient();
+  const supabase = getPublicClient();
   const { data, error } = await supabase
     .from("products")
     .select("*")
@@ -166,7 +178,7 @@ export async function dbGetRelatedProductsAsync(product: Product, limit = 4): Pr
 export async function dbCreateProductAsync(
   data: Omit<Product, "id" | "createdAt">
 ): Promise<Product> {
-  const supabase = getClient();
+  const supabase = getAdminClient();
 
   // Generate URL-safe id from name
   const base = data.name
@@ -178,7 +190,7 @@ export async function dbCreateProductAsync(
   let id = base;
   let suffix = 0;
   while (true) {
-    const { data: existing } = await supabase
+    const { data: existing } = await getPublicClient()
       .from("products")
       .select("id")
       .eq("id", id)
@@ -215,7 +227,7 @@ export async function dbUpdateProductAsync(
   id: string,
   data: Partial<Omit<Product, "id" | "createdAt">>
 ): Promise<Product | null> {
-  const supabase = getClient();
+  const supabase = getAdminClient();
 
   const updates: Record<string, unknown> = {};
   if (data.name !== undefined) updates.name = data.name;
@@ -239,7 +251,7 @@ export async function dbUpdateProductAsync(
 }
 
 export async function dbDeleteProductAsync(id: string): Promise<boolean> {
-  const supabase = getClient();
+  const supabase = getAdminClient();
   const { error } = await supabase
     .from("products")
     .delete()

@@ -2,7 +2,6 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
 import { CATEGORIES } from "@/lib/products";
 import type { Product, Category } from "@/lib/products";
 
@@ -27,13 +26,6 @@ const EMPTY: Omit<Product, "id" | "createdAt"> = {
 
 function formatEGP(price: number): string {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(price);
-}
-
-function getSupabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-  );
 }
 
 export default function ProductForm({ mode, initialData }: Props) {
@@ -76,12 +68,11 @@ export default function ProductForm({ mode, initialData }: Props) {
     }));
   }
 
-  // ─── Image upload to Supabase Storage ────────────────────────────────────
+  // ─── Image upload via secure API route ───────────────────────────────────
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type and size
     if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) {
       setError("Only JPEG, PNG, WebP, or GIF images are allowed.");
       return;
@@ -96,24 +87,18 @@ export default function ProductForm({ mode, initialData }: Props) {
     setError("");
 
     try {
-      const supabase = getSupabase();
+      const formData = new FormData();
+      formData.append("file", file);
 
-      // Create a unique filename: timestamp-originalname
-      const ext = file.name.split(".").pop();
-      const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
 
-      const { error: uploadError } = await supabase.storage
-        .from("product-images")
-        .upload(filename, file, { upsert: false });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Upload failed.");
 
-      if (uploadError) throw uploadError;
-
-      // Get the public URL
-      const { data: urlData } = supabase.storage
-        .from("product-images")
-        .getPublicUrl(filename);
-
-      setForm((prev) => ({ ...prev, image: urlData.publicUrl }));
+      setForm((prev) => ({ ...prev, image: data.url }));
       setUploadProgress("✓ Uploaded successfully");
       setTimeout(() => setUploadProgress(""), 3000);
     } catch (err) {
@@ -121,7 +106,6 @@ export default function ProductForm({ mode, initialData }: Props) {
       setUploadProgress("");
     } finally {
       setUploading(false);
-      // Reset file input so same file can be re-selected
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }
