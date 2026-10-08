@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { CATEGORIES, formatPrice } from "@/lib/products";
+import { createClient } from "@supabase/supabase-js";
+import { CATEGORIES } from "@/lib/products";
 import type { Product, Category } from "@/lib/products";
 
 type FormMode = "new" | "edit";
@@ -24,8 +25,21 @@ const EMPTY: Omit<Product, "id" | "createdAt"> = {
   isFeatured: false,
 };
 
+function formatEGP(price: number): string {
+  return `${price.toFixed(2)} EGP`;
+}
+
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+  );
+}
+
 export default function ProductForm({ mode, initialData }: Props) {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [form, setForm] = useState<Omit<Product, "id" | "createdAt">>(
     initialData
       ? {
@@ -42,6 +56,8 @@ export default function ProductForm({ mode, initialData }: Props) {
       : EMPTY
   );
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -60,17 +76,67 @@ export default function ProductForm({ mode, initialData }: Props) {
     }));
   }
 
+  // ─── Image upload to Supabase Storage ────────────────────────────────────
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type and size
+    if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) {
+      setError("Only JPEG, PNG, WebP, or GIF images are allowed.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Image must be under 5 MB.");
+      return;
+    }
+
+    setUploading(true);
+    setUploadProgress("Uploading…");
+    setError("");
+
+    try {
+      const supabase = getSupabase();
+
+      // Create a unique filename: timestamp-originalname
+      const ext = file.name.split(".").pop();
+      const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("product-images")
+        .upload(filename, file, { upsert: false });
+
+      if (uploadError) throw uploadError;
+
+      // Get the public URL
+      const { data: urlData } = supabase.storage
+        .from("product-images")
+        .getPublicUrl(filename);
+
+      setForm((prev) => ({ ...prev, image: urlData.publicUrl }));
+      setUploadProgress("✓ Uploaded successfully");
+      setTimeout(() => setUploadProgress(""), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed. Please try again.");
+      setUploadProgress("");
+    } finally {
+      setUploading(false);
+      // Reset file input so same file can be re-selected
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
+  // ─── Form submit ──────────────────────────────────────────────────────────
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setSuccess("");
 
-    // Client-side validation
     if (!form.name.trim()) { setError("Product name is required."); return; }
     if (!form.description.trim()) { setError("Short description is required."); return; }
     if (!form.fullDescription.trim()) { setError("Full description is required."); return; }
     if (form.price <= 0) { setError("Price must be greater than 0."); return; }
-    if (!form.image.trim()) { setError("Image URL is required."); return; }
+    if (!form.image.trim()) { setError("Product image is required."); return; }
     if (form.stock < 0) { setError("Stock cannot be negative."); return; }
 
     setSaving(true);
@@ -105,16 +171,7 @@ export default function ProductForm({ mode, initialData }: Props) {
   }
 
   // Live price preview
-  const pricePreview = form.price > 0 ? formatPrice(form.price) : null;
-
-  // Generate placeholder image helper
-  function usePlaceholder() {
-    const label = form.name || "Product";
-    setForm((prev) => ({
-      ...prev,
-      image: `https://placehold.co/600x450/C8960C/FFFFFF/png?text=${encodeURIComponent(label)}`,
-    }));
-  }
+  const pricePreview = form.price > 0 ? formatEGP(form.price) : null;
 
   return (
     <form onSubmit={handleSubmit} className="max-w-3xl space-y-6">
@@ -160,17 +217,22 @@ export default function ProductForm({ mode, initialData }: Props) {
         </Field>
 
         <Field label={`Price (EGP)${pricePreview ? ` — ${pricePreview}` : ""}`} required>
-          <input
-            name="price"
-            type="number"
-            min="0.01"
-            step="0.01"
-            value={form.price || ""}
-            onChange={handleChange}
-            placeholder="0.00"
-            className={INPUT}
-            required
-          />
+          <div className="relative">
+            <input
+              name="price"
+              type="number"
+              min="0.01"
+              step="0.01"
+              value={form.price || ""}
+              onChange={handleChange}
+              placeholder="0.00"
+              className={INPUT + " pr-14"}
+              required
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-medium pointer-events-none">
+              EGP
+            </span>
+          </div>
         </Field>
 
         <Field label="Stock" required>
@@ -218,33 +280,68 @@ export default function ProductForm({ mode, initialData }: Props) {
         />
       </Field>
 
-      {/* Image */}
-      <Field
-        label="Image URL"
-        hint="Paste a full https:// URL, or a /public path like /images/products/my-photo.jpg"
-        required
-      >
-        <div className="flex gap-2">
-          <input
-            name="image"
-            type="url"
-            value={form.image}
-            onChange={handleChange}
-            placeholder="https://example.com/image.jpg"
-            className={INPUT + " flex-1"}
-          />
-          <button
-            type="button"
-            onClick={usePlaceholder}
-            className="shrink-0 text-xs px-3 py-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors whitespace-nowrap"
-            title="Generate a placeholder image from the product name"
-          >
-            Use placeholder
-          </button>
+      {/* Image upload */}
+      <Field label="Product Image" required>
+        {/* Upload button */}
+        <div
+          onClick={() => fileInputRef.current?.click()}
+          className={`relative flex flex-col items-center justify-center gap-2 w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
+            uploading
+              ? "border-amber-300 bg-amber-50"
+              : "border-amber-200 hover:border-amber-400 hover:bg-amber-50 bg-white"
+          }`}
+        >
+          {uploading ? (
+            <>
+              <div className="w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+              <span className="text-sm text-amber-600 font-medium">Uploading…</span>
+            </>
+          ) : (
+            <>
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+              </svg>
+              <span className="text-sm text-gray-600">
+                <span className="font-semibold text-amber-600">Click to upload</span> a photo
+              </span>
+              <span className="text-xs text-gray-400">JPEG, PNG, WebP or GIF — max 5 MB</span>
+            </>
+          )}
         </div>
+
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          onChange={handleImageUpload}
+          className="hidden"
+          disabled={uploading}
+        />
+
+        {/* Upload success message */}
+        {uploadProgress && (
+          <p className="text-xs text-green-600 mt-1">{uploadProgress}</p>
+        )}
+
+        {/* OR divider + manual URL fallback */}
+        <div className="flex items-center gap-3 mt-3">
+          <div className="flex-1 h-px bg-gray-100" />
+          <span className="text-xs text-gray-400">or paste a URL</span>
+          <div className="flex-1 h-px bg-gray-100" />
+        </div>
+        <input
+          name="image"
+          type="text"
+          value={form.image}
+          onChange={handleChange}
+          placeholder="https://example.com/image.jpg"
+          className={INPUT + " mt-2"}
+        />
+
+        {/* Image preview */}
         {form.image && (
-          <div className="mt-3 w-32 h-24 rounded-xl overflow-hidden border border-amber-100 bg-amber-50">
-            {/* Plain <img> — avoids next/image hostname restrictions in the admin preview */}
+          <div className="mt-3 w-40 h-28 rounded-xl overflow-hidden border border-amber-100 bg-amber-50">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={form.image}
@@ -292,7 +389,7 @@ export default function ProductForm({ mode, initialData }: Props) {
       <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
         <button
           type="submit"
-          disabled={saving}
+          disabled={saving || uploading}
           className="bg-amber-600 hover:bg-amber-700 disabled:opacity-60 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors text-sm"
         >
           {saving
